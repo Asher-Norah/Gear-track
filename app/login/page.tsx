@@ -1,18 +1,50 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const API_BASE = "http://192.168.1.201:8080";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: connect to backend auth endpoint
-    console.log("Login attempt:", { email, password });
-    setTimeout(() => setLoading(false), 1500);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401 || res.status === 400) {
+        setError("Invalid email or password.");
+        setLoading(false);
+        return;
+      }
+
+      if (!res.ok) {
+        setError("Something went wrong. Try again.");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      router.push("/admin/dashboard");
+
+    } catch {
+      setError("Could not reach the server.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,10 +61,8 @@ export default function LoginPage() {
         backgroundPosition: "center 20%",
         backgroundRepeat: "no-repeat",
         justifyContent: "center",
-        
       }}
     >
-    
       {/* Glass card */}
       <div
         style={{
@@ -60,7 +90,7 @@ export default function LoginPage() {
             marginTop: 0,
           }}
         >
-          Welcome
+          GEAR-TRACK
         </h1>
 
         <form
@@ -110,6 +140,21 @@ export default function LoginPage() {
               boxSizing: "border-box",
             }}
           />
+
+          {/* Error message */}
+          {error && (
+            <p style={{
+              margin: 0,
+              color: "#f87171",
+              fontSize: "13px",
+              textAlign: "center",
+              background: "rgba(239,68,68,0.15)",
+              padding: "10px 16px",
+              borderRadius: "8px",
+            }}>
+              {error}
+            </p>
+          )}
 
           {/* Login button */}
           <button

@@ -1,6 +1,6 @@
 # Inventory System — API Testing Guide (curl)
 
-Base URL for local dev: `http://localhost:8080`
+Base URL for local dev: `http://localhost:3306`
 
 Tip: install `jq` for pretty-printed JSON output — `sudo apt install jq` — then pipe any command below through `| jq`.
 
@@ -11,7 +11,7 @@ Tip: install `jq` for pretty-printed JSON output — `sudo apt install jq` — t
 Confirms the server is up.
 
 ```bash
-curl -s http://localhost:8080/health
+curl -s http://localhost:3306/health
 ```
 
 **Expected response:**
@@ -26,7 +26,7 @@ curl -s http://localhost:8080/health
 ### Create an item
 
 ```bash
-curl -s -X POST http://localhost:8080/items \
+curl -s -X POST http://localhost:3306/items \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Dell Laptop",
@@ -54,7 +54,7 @@ curl -s -X POST http://localhost:8080/items \
 ### List all items
 
 ```bash
-curl -s http://localhost:8080/items
+curl -s http://localhost:3306/items
 ```
 
 ### Filter items by name
@@ -62,7 +62,7 @@ curl -s http://localhost:8080/items
 Partial, case-insensitive match on the `name` field.
 
 ```bash
-curl -s "http://localhost:8080/items?name=laptop"
+curl -s "http://localhost:3306/items?name=laptop"
 ```
 
 ---
@@ -72,7 +72,7 @@ curl -s "http://localhost:8080/items?name=laptop"
 Replace `1` with a real item ID from a previous create/list call.
 
 ```bash
-curl -s http://localhost:8080/items/1
+curl -s http://localhost:3306/items/1
 ```
 
 **If not found:** `404 Not Found`
@@ -85,7 +85,7 @@ curl -s http://localhost:8080/items/1
 ### Update an item
 
 ```bash
-curl -s -X PUT http://localhost:8080/items/1 \
+curl -s -X PUT http://localhost:3306/items/1 \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Dell Laptop Updated",
@@ -100,7 +100,7 @@ curl -s -X PUT http://localhost:8080/items/1 \
 ### Delete an item
 
 ```bash
-curl -s -X DELETE http://localhost:8080/items/1
+curl -s -X DELETE http://localhost:3306/items/1
 ```
 
 **Expected response:** `204 No Content` (empty body, that's normal for a successful delete)
@@ -108,7 +108,7 @@ curl -s -X DELETE http://localhost:8080/items/1
 To check the status code explicitly:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" -X DELETE http://localhost:8080/items/1
+curl -s -o /dev/null -w "%{http_code}\n" -X DELETE http://localhost:3306/items/1
 ```
 
 ---
@@ -120,7 +120,7 @@ curl -s -o /dev/null -w "%{http_code}\n" -X DELETE http://localhost:8080/items/1
 The field name must be exactly `image`.
 
 ```bash
-curl -s -X POST http://localhost:8080/upload \
+curl -s -X POST http://localhost:3306/upload \
   -F "image=@/home/infinity/test.jpg"
 ```
 
@@ -133,13 +133,13 @@ curl -s -X POST http://localhost:8080/upload \
 
 ```bash
 # 1. Upload and capture the URL
-IMAGE_URL=$(curl -s -X POST http://localhost:8080/upload \
+IMAGE_URL=$(curl -s -X POST http://localhost:3306/upload \
   -F "image=@/home/infinity/test.jpg" | jq -r '.image_url')
 
 echo "Uploaded: $IMAGE_URL"
 
 # 2. Create the item using that URL
-curl -s -X POST http://localhost:8080/items \
+curl -s -X POST http://localhost:3306/items \
   -H "Content-Type: application/json" \
   -d "{\"name\":\"Dell Laptop\",\"category\":\"Electronics\",\"serial_number\":\"SN12345\",\"image_url\":\"$IMAGE_URL\"}"
 ```
@@ -152,12 +152,12 @@ This requires `jq` to be installed, since it extracts `image_url` from the JSON 
 
 **See the full request/response exchange (headers included):**
 ```bash
-curl -v http://localhost:8080/items
+curl -v http://localhost:3306/items
 ```
 
 **See just the HTTP status code:**
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/items
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3306/items
 ```
 
 **Common status codes you'll see in this API:**
