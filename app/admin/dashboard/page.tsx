@@ -17,9 +17,9 @@ interface Item {
 }
 
 const NAV_ITEMS = [
-  { label: "Inventory", icon: "📦", key: "inventory" },
-  { label: "Loans", icon: "🔄", key: "loans" },
-  { label: "Borrow List", icon: "📋", key: "borrow" },
+  { label: "Inventory", key: "inventory", icon: "📦" },
+  { label: "Loans", key: "loans", icon: "📄" },
+  { label: "Borrow List", key: "borrow", icon: "🧾" },
 ];
 
 const inputStyle: React.CSSProperties = {
@@ -190,6 +190,23 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAddItem, setShowAddItem] = useState(false);
 
+  const handleLogout = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      if (token) {
+        await fetch(`${API_BASE}/logout`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` },
+        });
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      localStorage.removeItem("token");
+      router.push("/login");
+    }
+  };
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -233,6 +250,7 @@ export default function DashboardPage() {
         </nav>
         <div style={{ padding: "16px 12px", borderTop: "1px solid rgba(245,166,35,0.15)" }}>
           <button
+            onClick={handleLogout}
             style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%", padding: "12px 16px", borderRadius: "10px", background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "rgba(239,68,68,0.7)", fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif", letterSpacing: "0.03em", transition: "all 0.15s ease" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.color = "#f87171"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(239,68,68,0.7)"; }}
@@ -243,17 +261,20 @@ export default function DashboardPage() {
       </aside>
 
       <main style={{ marginLeft: "220px", flex: 1, padding: "36px 40px", minHeight: "100vh" }}>
+        <style jsx>{`
+          .searchInput::placeholder { color: rgba(255,255,255,0.7); opacity: 1; }
+        `}</style>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
           <div>
             <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 700, color: "#ffffff", letterSpacing: "0.04em" }}>Inventory</h1>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#ffffff" }}>
               {loading ? "Loading..." : `${items.length} items in store`}
             </p>
           </div>
           <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
             <div style={{ position: "relative" }}>
               <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.35)", fontSize: "15px" }}>🔍</span>
-              <input type="text" placeholder="Search items..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: "10px 16px 10px 40px", borderRadius: "10px", border: "1.5px solid rgba(245,166,35,0.35)", background: "rgba(255,255,255,0.04)", color: "#ffffff", fontSize: "14px", outline: "none", width: "220px", fontFamily: "Times New Roman, serif" }} />
+              <input className="searchInput" type="text" placeholder="Search items..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: "10px 16px 10px 40px", borderRadius: "10px", border: "1.5px solid rgba(245,166,35,0.35)", background: "rgba(255,255,255,0.04)", color: "#ffffff", fontSize: "14px", outline: "none", width: "220px", fontFamily: "Times New Roman, serif" }} />
             </div>
             <button onClick={() => setShowAddItem(true)} style={{ padding: "10px 22px", borderRadius: "10px", background: "#F5A623", border: "none", color: "#000000", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
               + Add Item

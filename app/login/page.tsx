@@ -9,6 +9,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,26 +121,61 @@ export default function LoginPage() {
           />
 
           {/* Password field */}
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="roseInput"
-            style={{
-              width: "100%",
-              borderRadius: "999px",
-              padding: "14px 24px",
-              color: "#ffffff",
-              fontWeight: 600,
-              fontSize: "15px",
-              background: "rgba(245, 166, 35, 1)",
-              border: "1px solid rgba(255, 255, 255, 1)",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="roseInput"
+              style={{
+                width: "100%",
+                borderRadius: "999px",
+                padding: "14px 48px 14px 24px",
+                color: "#ffffff",
+                fontWeight: 600,
+                fontSize: "15px",
+                background: "rgba(245, 166, 35, 1)",
+                border: "1px solid rgba(255, 255, 255, 1)",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              style={{
+                position: "absolute",
+                right: "14px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                color: "#ffffff",
+                cursor: "pointer",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {showPassword ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 3l18 18" />
+                  <path d="M10.6 10.6A3 3 0 0 0 13.4 13.4" />
+                  <path d="M9.9 5.1A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a14.7 14.7 0 0 1-4 5.2" />
+                  <path d="M6.3 6.3A14.7 14.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 3.8-.7" />
+                </svg>
+              )}
+            </button>
+          </div>
 
           {/* Error message */}
           {error && (

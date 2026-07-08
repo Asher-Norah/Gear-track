@@ -12,7 +12,7 @@ interface Item {
   description: string;
   serial_number: string;
   image_url: string;
-  status: "available" | "loaned";
+  status: "available" | "Checked_out" | "Maintenance";
   created_at: string;
 }
 
@@ -93,7 +93,7 @@ export default function ItemDetailPage() {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [serialNumber, setSerialNumber] = useState("");
-  const [status, setStatus] = useState<"available" | "loaned">("available");
+  const [state, setState] = useState<"available" | "Checked_out" | "Maintenance">("available");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -112,7 +112,7 @@ export default function ItemDetailPage() {
         setCategory(data.category);
         setDescription(data.description);
         setSerialNumber(data.serial_number);
-        setStatus(data.status);
+        setState(data.status);
         setImagePreview(data.image_url || null);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to load item");
@@ -139,7 +139,7 @@ export default function ItemDetailPage() {
     setCategory(item.category);
     setDescription(item.description);
     setSerialNumber(item.serial_number);
-    setStatus(item.status);
+    setState(item.status);
     setImagePreview(item.image_url || null);
     setImageFile(null);
     setActionError(null);
@@ -176,7 +176,7 @@ export default function ItemDetailPage() {
           category,
           description,
           serial_number: serialNumber,
-          status,
+          status: state,
           image_url,
         }),
       });
@@ -238,12 +238,12 @@ export default function ItemDetailPage() {
       {/* Breadcrumb / back */}
       <button
         onClick={() => router.push("/admin/dashboard")}
-        style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: "13px", cursor: "pointer", marginBottom: "28px", padding: 0, fontFamily: "Times New Roman, serif" }}
+        style={{ background: "none", border: "none", color: "#ffffff", fontSize: "13px", cursor: "pointer", marginBottom: "28px", padding: 0, fontFamily: "Times New Roman, serif" }}
       >
         ← Back to Inventory
       </button>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", maxWidth: "1100px", margin: "0 auto" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", maxWidth: "1100px", margin: "36px auto 0" }}>
         {/* Left: image */}
         <div>
           <div style={{ borderRadius: "16px", overflow: "hidden", border: "1.5px solid rgba(245,166,35,0.3)", background: "rgba(255,255,255,0.02)" }}>
@@ -294,16 +294,28 @@ export default function ItemDetailPage() {
               fontSize: "12px",
               fontWeight: 700,
               marginBottom: "20px",
-              background: (editing ? status : item.status) === "available" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)",
-              color: (editing ? status : item.status) === "available" ? "#4ade80" : "#f87171",
-              border: `1px solid ${(editing ? status : item.status) === "available" ? "#4ade80" : "#f87171"}`,
+              background: (editing ? state : item.status) === "available"
+                ? "rgba(34,197,94,0.2)"
+                : (editing ? state : item.status) === "Checked_out"
+                ? "rgba(239,68,68,0.2)"
+                : "rgba(245,166,35,0.2)",
+              color: (editing ? state : item.status) === "available"
+                ? "#4ade80"
+                : (editing ? state : item.status) === "Checked_out"
+                ? "#f87171"
+                : "#F5A623",
+              border: `1px solid ${(editing ? state : item.status) === "available"
+                ? "#4ade80"
+                : (editing ? state : item.status) === "Checked_out"
+                ? "#f87171"
+                : "#F5A623"}`,
               textTransform: "capitalize",
               cursor: editing ? "pointer" : "default",
             }}
-            onClick={() => editing && setStatus(status === "available" ? "loaned" : "available")}
-            title={editing ? "Click to toggle status" : undefined}
+            onClick={() => editing && setState(state === "available" ? "Checked_out" : "available")}
+            title={editing ? "Click to toggle state" : undefined}
           >
-            {editing ? status : item.status} {editing && "✎"}
+            {editing ? state : item.status} {editing && "✎"}
           </span>
 
           <div style={{ height: "1px", background: "rgba(245,166,35,0.2)", margin: "8px 0 20px" }} />
@@ -323,6 +335,19 @@ export default function ItemDetailPage() {
               <input value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} style={inputStyle} />
             ) : (
               <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.5)" }}>{item.serial_number}</p>
+            )}
+          </div>
+
+          <div style={{ marginBottom: "24px" }}>
+            <label style={labelStyle}>State</label>
+            {editing ? (
+              <select value={state} onChange={(e) => setState(e.target.value as "available" | "Checked_out" | "Maintenance")} style={{ ...inputStyle, appearance: "none", WebkitAppearance: "none", MozAppearance: "none" }}>
+                <option value="available">Available</option>
+                <option value="Checked_out">Checked Out</option>
+                <option value="Maintenance">Maintenance</option>
+              </select>
+            ) : (
+              <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.5)" }}>{item.status}</p>
             )}
           </div>
 
