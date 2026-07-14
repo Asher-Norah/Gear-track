@@ -16,6 +16,14 @@ interface Item {
   created_at: string;
 }
 
+interface Borrower {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  department?: string;
+}
+
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: "12px",
@@ -87,6 +95,14 @@ export default function ItemDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [borrowers, setBorrowers] = useState<Borrower[]>([]);
+  const [borrowerId, setBorrowerId] = useState<number | null>(null);
+  const [dueDate, setDueDate] = useState("");
+  const [loanDate, setLoanDate] = useState("");
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
 
   // edit form state
   const [name, setName] = useState("");
@@ -151,6 +167,63 @@ export default function ItemDetailPage() {
     setImageFile(null);
     setActionError(null);
     if (item) setImagePreview(item.image_url || null);
+  };
+
+  const openCheckoutModal = async () => {
+    if (!item) return;
+    setCheckoutError(null);
+    setCheckoutSuccess(false);
+    setBorrowerId(null);
+    setDueDate("");
+    setLoanDate(new Date().toISOString().slice(0, 10));
+    setCheckoutOpen(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/borrowers`);
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+      setBorrowers(Array.isArray(data) ? data : []);
+    } catch (err: unknown) {
+      setCheckoutError(err instanceof Error ? err.message : "Could not load borrowers");
+    }
+  };
+
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!item || !borrowerId || !loanDate || !dueDate) {
+      setCheckoutError("Please select a borrower and a return date.");
+      return;
+    }
+
+    setCheckingOut(true);
+    setCheckoutError(null);
+    setCheckoutSuccess(false);
+
+    try {
+      const loanRes = await fetch(`${API_BASE}/loans`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          item_id: item.id,
+          borrower_id: borrowerId,
+          checked_out_at: `${loanDate}T00:00:00Z`,
+          expected_return_at: `${dueDate}T00:00:00Z`,
+        }),
+      });
+
+      if (!loanRes.ok) {
+        const errorData = await loanRes.json().catch(() => null);
+        throw new Error(errorData?.error || `Server error: ${loanRes.status}`);
+      }
+
+      setItem({ ...item, status: "Checked_out" });
+      setCheckoutOpen(false);
+      setCheckoutSuccess(true);
+    } catch (err: unknown) {
+      setCheckoutError(err instanceof Error ? err.message : "Checkout failed");
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   const handleSave = async () => {
@@ -235,6 +308,72 @@ export default function ItemDetailPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#000000", fontFamily: "Times New Roman, serif", padding: "36px 40px" }}>
+      {checkoutOpen && (
+        <div onClick={() => setCheckoutOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.78)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "480px", maxWidth: "92vw", borderRadius: "18px", border: "1.5px solid rgba(245,166,35,0.45)", background: "#111111", boxShadow: "0 24px 80px rgba(0,0,0,0.8)", padding: "28px 30px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ margin: 0, fontSize: "20px", fontWeight: 700, color: "#ffffff" }}>Check Out Item</h2>
+              <button onClick={() => setCheckoutOpen(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: "22px", cursor: "pointer" }}>✕</button>
+            </div>
+
+            <form onSubmit={handleCheckout} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={labelStyle}>Borrower *</label>
+                <select
+                  required
+                  value={borrowerId ?? ""}
+                  onChange={(e) => setBorrowerId(e.target.value ? Number(e.target.value) : null)}
+                  style={{
+                    ...inputStyle,
+                    appearance: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    color: "#000000",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <option value="" style={{ color: "#000000" }}>Select a borrower</option>
+                  {borrowers.map((borrower) => (
+                    <option key={borrower.id} value={borrower.id} style={{ color: "#000000" }}>{borrower.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Loan Date</label>
+                <input
+                  type="date"
+                  value={loanDate}
+                  disabled
+                  style={{ ...inputStyle, background: "#ffffff", color: "#000000" }}
+                />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Due Date *</label>
+                <input
+                  type="date"
+                  required
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+
+              {checkoutError && <p style={{ margin: 0, fontSize: "13px", color: "#f87171" }}>{checkoutError}</p>}
+
+              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                <button type="button" onClick={() => setCheckoutOpen(false)} style={{ flex: 1, padding: "12px", borderRadius: "8px", background: "transparent", border: "1.5px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)", fontWeight: 600, fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif" }}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={checkingOut} style={{ flex: 1, padding: "12px", borderRadius: "8px", background: "#F5A623", border: "none", color: "#000", fontWeight: 700, fontSize: "14px", cursor: checkingOut ? "not-allowed" : "pointer", opacity: checkingOut ? 0.7 : 1, fontFamily: "Times New Roman, serif" }}>
+                  {checkingOut ? "Checking out..." : "Check Out"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {/* Breadcrumb / back */}
       <button
         onClick={() => router.push("/admin/dashboard")}
@@ -359,25 +498,36 @@ export default function ItemDetailPage() {
           </div>
 
           {actionError && <p style={{ color: "#f87171", fontSize: "13px", marginBottom: "16px" }}>{actionError}</p>}
+          {checkoutSuccess && (
+            <div style={{ background: "rgba(34,197,94,0.08)", border: "1.5px solid rgba(34,197,94,0.3)", borderRadius: "10px", padding: "12px 14px", marginBottom: "16px", color: "#4ade80", fontSize: "13px" }}>
+              ✅ Item checked out successfully. It now appears in the active loans list.
+            </div>
+          )}
 
           {/* Action buttons */}
           {!editing ? (
-            <div style={{ display: "flex", gap: "12px" }}>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <button
                 onClick={startEditing}
-                style={{ flex: 1, padding: "13px", borderRadius: "10px", background: "#F5A623", border: "none", color: "#000", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif" }}
+                style={{ flex: 1, minWidth: "140px", padding: "13px", borderRadius: "10px", background: "#F5A623", border: "none", color: "#000", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif" }}
               >
                 Edit Item
+              </button>
+              <button
+                onClick={openCheckoutModal}
+                style={{ flex: 1, minWidth: "140px", padding: "13px", borderRadius: "10px", background: "transparent", border: "1.5px solid rgba(245,166,35,0.5)", color: "#F5A623", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif" }}
+              >
+                Check Out Item
               </button>
               {!confirmDelete ? (
                 <button
                   onClick={() => setConfirmDelete(true)}
-                  style={{ flex: 1, padding: "13px", borderRadius: "10px", background: "transparent", border: "1.5px solid rgba(239,68,68,0.5)", color: "#f87171", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif" }}
+                  style={{ flex: 1, minWidth: "140px", padding: "13px", borderRadius: "10px", background: "transparent", border: "1.5px solid rgba(239,68,68,0.5)", color: "#f87171", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "Times New Roman, serif" }}
                 >
                   Delete Item
                 </button>
               ) : (
-                <div style={{ flex: 1, display: "flex", gap: "8px" }}>
+                <div style={{ flex: 1, minWidth: "140px", display: "flex", gap: "8px" }}>
                   <button
                     onClick={handleDelete}
                     disabled={deleting}

@@ -65,7 +65,7 @@ export default function LoginPage() {
       }}
     >
       {/* Glass card */}
-      <div
+    <div
         style={{
           position: "relative",
           zIndex: 10,
@@ -144,7 +144,7 @@ export default function LoginPage() {
             />
             <button
               type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
+              onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               style={{
                 position: "absolute",
@@ -162,18 +162,37 @@ export default function LoginPage() {
               }}
             >
               {showPassword ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 3l18 18" />
                   <path d="M10.6 10.6A3 3 0 0 0 13.4 13.4" />
                   <path d="M9.9 5.1A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a14.7 14.7 0 0 1-4 5.2" />
                   <path d="M6.3 6.3A14.7 14.7 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 3.8-.7" />
                 </svg>
               )}
+            </button>
+          </div>
+
+          {/* Forgot password (centered under password) */}
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => router.push("/forgot-password")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.85)",
+                fontSize: "14px",
+                fontWeight: 500,
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              Forgot Password ?
             </button>
           </div>
 
@@ -218,21 +237,23 @@ export default function LoginPage() {
         </form>
 
         {/* Forgot password */}
-        <div style={{ textAlign: "center", marginTop: "24px" }}>
-          <button
-            type="button"
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.85)",
-              fontSize: "14px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Forgot Password ?
-          </button>
-        </div>
+        <button
+                type="button"
+                onClick={() => router.push("/forgot-password")}
+                style={{
+                    background: "none",
+                    border: "none",
+                    color: "rgba(255,255,255,0.85)",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                }}
+                >
+
+                    </button>
+            
+          
+        
       </div>
     </main>
   );
