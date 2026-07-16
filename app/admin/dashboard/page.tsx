@@ -1,3 +1,5 @@
+/* ADMIN DASHBOARD FOR GEAR-TRACK. Keeping to the colourways of blacks and yellows some golds and oranges.*/
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -5,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 const API_BASE = "http://192.168.1.201:8080";
 
+/* INTERFACE DEFINITIONS OF THE ITEMS TO BE LOANED.*/
 interface Item {
   id: number;
   name: string;
@@ -15,7 +18,7 @@ interface Item {
   status: "available" | "loaned";
   created_at: string;
 }
-
+/* INTERFACE DEFINITIONS OF THE BORROWERS TO BE REGISTERED.*/
 interface Borrower {
   id: number;
   name: string;
@@ -24,7 +27,7 @@ interface Borrower {
   department?: string;
   created_at?: string;
 }
-
+/* INTERFACE DEFINITIONS OF THE LOANS TO BE TRACKED.*/
 interface Loan {
   id: number;
   item_id: number;
@@ -38,7 +41,7 @@ interface Loan {
   item_name?: string;
   borrower_name?: string;
 }
-
+/* INTERFACE DEFINITIONS OF THE NOTIFICATIONS  BAR.*/
 interface NotificationItem {
   id: number;
   loan_id: number;
@@ -46,7 +49,7 @@ interface NotificationItem {
   is_read: boolean;
   created_at: string;
 }
-
+/* SIDEBAR OF THE ADMIN DASHBOARD*/
 const NAV_ITEMS = [
   { label: "Inventory", icon: "📦", key: "inventory" },
   { label: "Loans",     icon: "🔄", key: "loans"     },
@@ -76,8 +79,7 @@ const labelStyle: React.CSSProperties = {
   textTransform: "uppercase",
 };
 
-// ─── SHARED PLACEHOLDER ───────────────────────────────────────────────────────
-
+/* SHARED PLACEHOLDER FOR ITEMS WHOSE IMAGES AREN'T UPLOADED- FALLBACK */
 function ItemPlaceholder({ name }: { name: string }) {
   return (
     <div style={{ width: "100%", height: "100%", minHeight: "160px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, rgba(245,166,35,0.15), rgba(0,0,0,0.4))", fontSize: "40px", position: "relative" }}>
@@ -108,6 +110,7 @@ function getAuthHeaders(extra: Record<string, string> = {}) {
   return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
 }
 
+/* NOTIFICATION SIDEBAR SECTION */
 function NotificationSidebarSection({
   notifications,
   loading,
@@ -177,8 +180,7 @@ function NotificationSidebarSection({
   );
 }
 
-// ─── INVENTORY CARD ───────────────────────────────────────────────────────────
-
+/* INVENTORY CARD */
 function ItemCard({ item, onClick, onCheckout, onEdit, onDelete }: { item: Item; onClick: () => void; onCheckout: () => void; onEdit: () => void; onDelete: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -206,8 +208,7 @@ function ItemCard({ item, onClick, onCheckout, onEdit, onDelete }: { item: Item;
   );
 }
 
-// ─── ADD ITEM MODAL ───────────────────────────────────────────────────────────
-
+/*ADD ITEM MODAL/FORM */
 function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: (item: Item) => void }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -293,8 +294,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ite
   );
 }
 
-// ─── LOANS SECTION ────────────────────────────────────────────────────────────
-
+/* LOANS SECTION */
 function LoansSection({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -348,7 +348,6 @@ function LoansSection({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
       const data = await res.json();
       if (data) setActiveReturnLoan(prev => ({ ...(prev ?? loan), ...data }));
     } catch (err) {
-      // ignore — show what we have
       console.error("Failed to fetch loan details:", err);
     }
   };
@@ -410,19 +409,19 @@ function LoansSection({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
             return (
               <div key={loan.id} style={{ borderRadius: "14px", border: `1.5px solid ${overdue ? "rgba(239,68,68,0.55)" : "rgba(245,166,35,0.45)"}`, background: overdue ? "rgba(239,68,68,0.03)" : "rgba(255,255,255,0.03)", overflow: "hidden", fontFamily: "Times New Roman, serif", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
 
-                {/* ── Image + badge (same layout as ItemCard) ── */}
+                {/* loan itemcard */}
                 <div style={{ position: "relative", height: "160px", overflow: "hidden" }}>
                   {itemImage
                     ? <img src={itemImage} alt={itemName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     : <ItemPlaceholder name={itemName} />}
 
-                  {/* Overdue / Loaned badge — identical position to "available" badge */}
+                  {/* Overdue- bubble */}
                   <span style={{ position: "absolute", top: 10, right: 10, padding: "3px 10px", borderRadius: "999px", fontSize: "11px", fontWeight: 700, background: overdue ? "rgba(239,68,68,0.25)" : "rgba(245,166,35,0.2)", color: overdue ? "#f87171" : "#F5A623", border: `1px solid ${overdue ? "#f87171" : "#F5A623"}`, fontFamily: "Times New Roman, serif", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                     {overdue ? "Overdue" : "Loaned"}
                   </span>
                 </div>
 
-                {/* ── Details ── */}
+                {/* Details */}
                 <div style={{ padding: "14px 16px 16px" }}>
                   <h3 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#ffffff", lineHeight: 1.3 }}>{itemName}</h3>
                   <p style={{ margin: "0 0 4px", fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>
@@ -470,8 +469,7 @@ function LoansSection({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   );
 }
 
-// ─── BORROW LIST SECTION ──────────────────────────────────────────────────────
-
+/* BORROW LIST SECTION */
 function BorrowerListSection() {
   const [borrowers, setBorrowers] = useState<Borrower[]>([]);
   const [loading, setLoading]     = useState(true);
@@ -552,7 +550,7 @@ function BorrowerListSection() {
   );
 }
 
-// ─── REGISTER SECTION ─────────────────────────────────────────────────────────
+/* REGISTER SECTION */
 
 function RegisterSection({ onRegistered }: { onRegistered: () => void }) {
   const [name, setName]       = useState("");
@@ -623,8 +621,7 @@ function RegisterSection({ onRegistered }: { onRegistered: () => void }) {
   );
 }
 
-// ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
-
+/* MAIN DASHBOARD */
 export default function DashboardPage() {
   const router = useRouter();
   const [activeNav, setActiveNav] = useState("inventory");
@@ -863,7 +860,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Main ── */}
+      {/* Main */}
       <main style={{ marginLeft: "220px", flex: 1, padding: "36px 40px", minHeight: "100vh" }}>
 
         {/* INVENTORY */}

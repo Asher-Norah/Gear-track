@@ -1,9 +1,12 @@
+/*LOGIN PAGE FOR GEAR-TRACK */
+/*The plan was to have a gear-like image downloaded from pinterest to act as my background. I also wanted to maintain a gold and black maybe orange consistent  colourway so i kept that in mind. */
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE = "http://192.168.1.201:8080";
+const API_BASE = "http://192.168.1.201:8080"; /*backend IP address*/
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /*handlelogin*/
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -48,6 +52,7 @@ export default function LoginPage() {
     }
   };
 
+  /*styling the glasmorphism design of the login card and the image background*/
   return (
     <main
       style={{
@@ -177,7 +182,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Forgot password (centered under password) */}
+          {/* Forgot password */}
           <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
             <button
               type="button"
@@ -236,21 +241,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Forgot password */}
-        <button
-                type="button"
-                onClick={() => router.push("/forgot-password")}
-                style={{
-                    background: "none",
-                    border: "none",
-                    color: "rgba(255,255,255,0.85)",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                }}
-                >
 
-                    </button>
             
           
         
